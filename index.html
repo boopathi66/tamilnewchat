@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends Tamil Chat</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="art.css">
+    <!-- FontAwesome for Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <!-- AUTH / REGISTER / LOGIN / FORGOT PASSWORD MODAL -->
+    <div id="authModal" class="modal-overlay">
+        <div class="modal-card">
+            <div class="auth-tabs">
+                <button class="active" id="tabLogin" onclick="switchAuthTab('login')">Login</button>
+                <button id="tabRegister" onclick="switchAuthTab('register')">Register</button>
+                <button id="tabForgot" onclick="switchAuthTab('forgot')">Forgot Password</button>
+            </div>
+
+            <!-- LOGIN FORM -->
+            <form id="formLogin" class="auth-form active">
+                <h3>Welcome Back</h3>
+                <input type="email" placeholder="Email Address" required id="loginEmail">
+                <input type="password" placeholder="Password" required id="loginPass">
+                <button type="submit" class="btn-primary">Login to Chat</button>
+            </form>
+
+            <!-- REGISTER FORM -->
+            <form id="formRegister" class="auth-form">
+                <h3>Create Account</h3>
+                <input type="text" placeholder="Username" required id="regUser">
+                <input type="email" placeholder="Email Address" required id="regEmail">
+                <input type="password" placeholder="Password" required id="regPass">
+                <button type="submit" class="btn-primary">Register (Default: Member)</button>
+            </form>
+
+            <!-- FORGOT PASSWORD FORM (OTP) -->
+            <form id="formForgot" class="auth-form">
+                <h3>Reset Password via OTP</h3>
+                <input type="email" placeholder="Enter Registered Email" required id="forgotEmail">
+                <button type="button" class="btn-secondary" onclick="sendOTP()">Send OTP</button>
+                
+                <div id="otpSection" class="hidden">
+                    <input type="text" placeholder="Enter 6-digit OTP" id="otpCode">
+                    <input type="password" placeholder="New Password" id="newPassword">
+                    <button type="submit" class="btn-primary">Reset Password</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MAIN APP STRUCTURE -->
+    <div class="app-container">
+        
+        <!-- TOP NAVBAR -->
+        <header class="top-nav">
+            <div class="nav-left">
+                <button class="icon-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+                <div class="brand">
+                    <span class="logo-icon"><i class="fa-solid fa-comments"></i></span>
+                    <span class="logo-text">FRIENDS <span>TAMIL CHAT</span></span>
+                </div>
+            </div>
+
+            <div class="nav-right">
+                <button class="icon-btn" title="Gift"><i class="fa-solid fa-gift"></i></button>
+                <button class="icon-btn" title="Refresh" onclick="location.reload()"><i class="fa-solid fa-rotate-right"></i></button>
+                <button class="icon-btn" title="Messages"><i class="fa-solid fa-envelope"></i></button>
+                <button class="icon-btn" title="Notifications"><i class="fa-solid fa-bell"></i></button>
+                
+                <!-- OWNER PORTAL BUTTON (Visible to Owner Only) -->
+                <button id="ownerPortalBtn" class="icon-btn owner-only" title="Owner Control Panel" onclick="openOwnerPortal()">
+                    <i class="fa-solid fa-user-shield"></i>
+                </button>
+
+                <div class="user-avatar-badge" onclick="openProfileSettings()">
+                    <img id="myAvatar" src="https://i.pravatar.cc/100?img=12" alt="Profile">
+                    <span id="myStatusDot" class="status-dot online"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- MAIN BODY (CHAT + SIDEBAR) -->
+        <div class="main-body">
+            
+            <!-- CHAT AREA -->
+            <section class="chat-area">
+                
+                <!-- TOPIC BANNER -->
+                <div class="topic-banner">
+                    <div class="topic-icon"><i class="fa-solid fa-envelope-open-text"></i></div>
+                    <div class="topic-content">
+                        <strong>Topic</strong>
+                        <p>Welcome to Friends Tamil Chat 🎈 💎 Sharing your personal details in Chat Room is at your own risk. 💎 Set your private settings as 🌞 Profile>>>>Private Settings>>> set OFF or MEMBER.</p>
+                        <div class="notice-box">
+                            <strong>Ungal Choice : 42</strong>
+                            <span>To participate in Ungal Choice-42, enroll yourself in <a href="#">https://friendstamilchat.net/forum</a> <mark>Only first 75 entries will be considered in UC-42.</mark></span>
+                        </div>
+                    </div>
+                    <button class="close-topic" onclick="this.parentElement.remove()">&times;</button>
+                </div>
+
+                <!-- MESSAGES CONTAINER -->
+                <div class="messages-list" id="messagesContainer">
+                    <!-- Dynamic Messages will render here -->
+                </div>
+
+                <!-- BOTTOM INPUT BAR -->
+                <div class="chat-input-bar">
+                    <button class="input-btn" title="Emoji/GIF Picker" onclick="toggleEmojiPicker()"><i class="fa-regular fa-face-smile"></i></button>
+                    <button class="input-btn" title="Attach Image" onclick="document.getElementById('imgUpload').click()"><i class="fa-solid fa-paperclip"></i></button>
+                    <input type="file" id="imgUpload" accept="image/*" style="display:none;" onchange="handleImageUpload(event)">
+                    
+                    <input type="text" id="chatMessageInput" placeholder="Type here..." onkeypress="handleKeyPress(event)">
+                    
+                    <button class="input-btn" title="Voice Message"><i class="fa-solid fa-microphone"></i></button>
+                    <button class="send-btn" onclick="sendMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+                </div>
+
+                <!-- EMOJI & GIF PANEL -->
+                <div id="emojiPicker" class="emoji-picker hidden">
+                    <div class="picker-header">
+                        <button onclick="showEmojiCategory('emojis')">Emojis</button>
+                        <button onclick="showEmojiCategory('gifs')">GIFs</button>
+                        <button onclick="showEmojiCategory('stickers')">Stickers</button>
+                    </div>
+                    <div class="picker-content" id="pickerContent">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- RIGHT SIDEBAR -->
+            <aside class="right-sidebar">
+                <div class="sidebar-tabs">
+                    <button class="active"><i class="fa-solid fa-users"></i></button>
+                    <button><i class="fa-solid fa-magnifying-glass"></i></button>
+                </div>
+
+                <!-- STORIES SECTION -->
+                <div class="sidebar-section">
+                    <div class="section-title"><i class="fa-camera"></i> Stories (<span id="storiesCount">13</span>)</div>
+                    <div class="stories-row">
+                        <div class="story-item">
+                            <div class="story-ring"><img src="https://i.pravatar.cc/100?img=32" alt="Megha"></div>
+                            <span>Megha</span>
+                        </div>
+                        <div class="story-item">
+                            <div class="story-ring"><img src="https://i.pravatar.cc/100?img=47" alt="Yazhini"></div>
+                            <span>Yazhini</span>
+                        </div>
+                        <div class="story-item">
+                            <div class="story-ring"><img src="https://i.pravatar.cc/100?img=15" alt="London"></div>
+                            <span>London...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ON-AIR DJ SECTION -->
+                <div class="sidebar-section">
+                    <div class="section-title">On-air dj <span class="badge-count">1</span></div>
+                    <div class="user-row">
+                        <img src="https://i.pravatar.cc/100?img=5" class="user-avatar" alt="Bhuvana">
+                        <div class="user-info">
+                            <span class="user-name dj-name">Bhuvana</span>
+                        </div>
+                        <div class="user-level">
+                            <i class="fa-solid fa-medal level-icon"></i>
+                            <span class="lvl-num">Lv. 11</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ONLINE USERS LIST -->
+                <div class="sidebar-section">
+                    <div class="section-title">Online <span class="badge-count" id="onlineCount">93</span></div>
+                    <div class="user-list" id="onlineUserList">
+                        <!-- Dynamic User Rows -->
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <!-- BOTTOM FM PLAYER BAR -->
+        <footer class="fm-bar">
+            <button class="fm-play-btn" onclick="toggleFM()"><i class="fa-solid fa-play" id="fmPlayIcon"></i></button>
+            <div class="fm-info">
+                <span class="fm-title">Friends Tamil FM Live</span>
+                <span class="fm-status" id="fmStatus">Paused</span>
+            </div>
+            <audio id="fmAudio" src="https://stream.zeno.fm/f3wvbb1438quv"></audio>
+            <button class="fm-menu-btn"><i class="fa-solid fa-bars"></i></button>
+        </footer>
+    </div>
+
+    <!-- OWNER CONTROL PORTAL MODAL -->
+    <div id="ownerPortalModal" class="modal-overlay hidden">
+        <div class="modal-card wide">
+            <div class="modal-header">
+                <h2><i class="fa-solid fa-user-gear"></i> Owner & Admin Control Panel</h2>
+                <button class="close-btn" onclick="closeOwnerPortal()">&times;</button>
+            </div>
+            <div class="portal-body">
+                <div class="portal-sidebar">
+                    <button class="active" onclick="showPortalTab('users')">Manage Users & Roles</button>
+                    <button onclick="showPortalTab('badges')">Custom Badges & Symbols</button>
+                    <button onclick="showPortalTab('ghost')">Ghost / Invisible Mode</button>
+                    <button onclick="showPortalTab('rooms')">Create / Manage Rooms</button>
+                </div>
+                <div class="portal-content">
+                    
+                    <!-- TAB 1: MANAGE USERS -->
+                    <div id="pTabUsers" class="portal-tab active">
+                        <h3>User Management (Kick / Ban / Promote)</h3>
+                        <table class="portal-table">
+                            <thead>
+                                <tr>
+                                    <th>User</th>
+                                    <th>Current Role</th>
+                                    <th>Level</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="portalUserTable">
+                                <!-- Populated by JS -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- TAB 2: BADGES -->
+                    <div id="pTabBadges" class="portal-tab">
+                        <h3>Customize Role Badges & Icons</h3>
+                        <div class="badge-form">
+                            <label>Owner Symbol: <input type="text" id="badgeOwner" value="💎 Owner"></label>
+                            <label>Admin Symbol: <input type="text" id="badgeAdmin" value="⭐ Admin"></label>
+                            <label>Moderator Symbol: <input type="text" id="badgeMod" value="🛡️ Mod"></label>
+                            <button class="btn-primary" onclick="saveBadgeSymbols()">Save Badge Settings</button>
+                        </div>
+                    </div>
+
+                    <!-- TAB 3: GHOST MODE -->
+                    <div id="pTabGhost" class="portal-tab">
+                        <h3>Owner Ghost / Invisible Mode</h3>
+                        <p>When Ghost Mode is enabled, the Owner can observe and chat without appearing in the "Online Users" list.</p>
+                        <label class="switch">
+                            <input type="checkbox" id="ghostToggle" onchange="toggleGhostMode(this.checked)">
+                            <span class="slider round"></span> Enable Ghost Mode
+                        </label>
+                    </div>
+
+                    <!-- TAB 4: ROOMS -->
+                    <div id="pTabRooms" class="portal-tab">
+                        <h3>Create New Chat Room</h3>
+                        <input type="text" id="newRoomName" placeholder="Room Name (e.g., VIP Lounge)">
+                        <button class="btn-primary" onclick="createNewRoom()">Create Room</button>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="art.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
